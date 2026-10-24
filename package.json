@@ -5,11 +5,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OWNER/recipe-table.git"
+    "url": "git+https://github.com/oblr/recipe-table.git"
   },
-  "homepage": "https://github.com/OWNER/recipe-table#readme",
+  "homepage": "https://github.com/oblr/recipe-table#readme",
   "bugs": {
-    "url": "https://github.com/OWNER/recipe-table/issues"
+    "url": "https://github.com/oblr/recipe-table/issues"
   },
   "type": "module",
   "sideEffects": [
