@@ -1,0 +1,16 @@
+# recipe-table
+
+> React component and React-free core that render recipes as tabular recipes (Cooking for Engineers notation): ingredients are rows, steps are columns, each step spans the ingredients it combines. Plain-CSS theming via --rt-* custom properties in @layer recipe-table. Recipe data is JSON validated by validateRecipe().
+
+- Install: `npm install recipe-table`; render: `<RecipeTable recipe={recipe} />` with `import "recipe-table/styles.css"`.
+- Data format: flat `ingredients` and `steps`; steps reference `inputs` by id; one final step; schemaVersion 1.
+- Validation errors carry a JSON Pointer path, a stable code, a message and a fix hint.
+- CLI: `npx recipe-table validate|preview file.json`.
+
+## Docs
+
+- [AGENTS.md](AGENTS.md): usage guide for coding agents, rules for producing recipe data
+- [README.md](README.md): props, format, styling
+- [recipe.schema.json](recipe.schema.json): JSON Schema 2020-12 for recipes
+- [tokens.json](tokens.json): every CSS token and part class
+- [examples/](examples/): valid recipes; examples/invalid/ holds one broken recipe per error code

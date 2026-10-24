@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "title": "Banana Bread",
+  "yield": { "amount": 1, "unit": "loaf (9×5 in)" },
+  "time": { "total": "PT1H15M" },
+  "prep": [
+    { "id": "preheat", "action": "Preheat the oven", "temperature": { "value": 175, "unit": "C" } },
+    { "id": "grease", "action": "Grease a 9×5 in loaf pan" }
+  ],
+  "ingredients": [
+    { "id": "butter", "name": "butter", "quantity": { "value": 115, "unit": "g", "alt": [{ "value": 0.5, "unit": "cup" }] }, "note": "softened" },
+    { "id": "sugar", "name": "sugar", "quantity": { "value": 200, "unit": "g", "alt": [{ "value": 1, "unit": "cup" }] } },
+    { "id": "eggs", "name": "eggs", "quantity": { "value": 2 } },
+    { "id": "bananas", "name": "ripe bananas", "quantity": { "value": 3 } },
+    { "id": "vanilla", "name": "vanilla extract", "quantity": { "value": 1, "unit": "tsp" } },
+    { "id": "flour", "name": "flour", "quantity": { "value": 250, "unit": "g", "alt": [{ "value": 2, "unit": "cup" }] } },
+    { "id": "baking-soda", "name": "baking soda", "quantity": { "value": 1, "unit": "tsp" } },
+    { "id": "salt", "name": "salt", "quantity": { "value": 0.5, "unit": "tsp" } },
+    { "id": "walnuts", "name": "walnuts", "quantity": { "value": 60, "unit": "g" }, "note": "chopped", "optional": true }
+  ],
+  "steps": [
+    { "id": "cream", "action": "cream", "inputs": ["butter", "sugar"], "duration": "PT3M" },
+    { "id": "beat-in", "action": "beat in", "inputs": ["cream", "eggs"] },
+    { "id": "mash", "action": "mash", "inputs": ["bananas"] },
+    { "id": "stir", "action": "stir together", "inputs": ["mash", "vanilla"] },
+    { "id": "combine", "action": "combine", "inputs": ["beat-in", "stir"] },
+    { "id": "whisk", "action": "whisk", "inputs": ["flour", "baking-soda", "salt"] },
+    { "id": "fold", "action": "fold in", "inputs": ["combine", "whisk", "walnuts"] },
+    { "id": "bake", "action": "bake", "inputs": ["fold"], "duration": "PT1H", "temperature": { "value": 175, "unit": "C" } },
+    { "id": "cool", "action": "cool", "inputs": ["bake"], "duration": "PT15M", "note": "in the pan, then on a rack" }
+  ]
+}

@@ -1,0 +1,262 @@
+/*
+ * recipe-table default styles (modern minimal).
+ *
+ * Override with plain CSS: everything sits in the `recipe-table` cascade layer behind
+ * zero-specificity :where() selectors, so any of your own rules win.
+ *
+ * Theme with tokens on any ancestor (or via the `style` / `className` props):
+ *   .my-recipes { --rt-color-accent: teal; --rt-radius: 0; }
+ * The full token list is in tokens.json. Colour tokens apply in both light and dark mode;
+ * set them inside your own dark-mode rule if they should differ.
+ */
+@layer recipe-table {
+  /* Internal variables (--_rt-*) resolve public tokens (--rt-*) with light defaults. */
+  :where(.rt-root) {
+    --_rt-font-family: var(--rt-font-family, inherit);
+    --_rt-font-size: var(--rt-font-size, 1rem);
+    --_rt-ink: var(--rt-color-ink, #1f1d1a);
+    --_rt-muted: var(--rt-color-muted, #6b665e);
+    --_rt-border: var(--rt-color-border, #e3ded5);
+    --_rt-surface: var(--rt-color-surface, #ffffff);
+    --_rt-ingredient-bg: var(--rt-color-ingredient-bg, transparent);
+    --_rt-step-bg: var(--rt-color-step-bg, #f6f4ef);
+    --_rt-root-bg: var(--rt-color-root-bg, #e8e1d3);
+    --_rt-accent: var(--rt-color-accent, #a2581f);
+    --_rt-border-width: var(--rt-border-width, 1px);
+    --_rt-radius: var(--rt-radius, 10px);
+    --_rt-cell-padding: var(--rt-cell-padding, 0.55rem 0.8rem);
+    --_rt-quantity-weight: var(--rt-quantity-weight, 600);
+    --_rt-title-size: var(--rt-title-size, 1.5em);
+
+    container-type: inline-size;
+    font-family: var(--_rt-font-family);
+    font-size: var(--_rt-font-size);
+    line-height: 1.4;
+    color: var(--_rt-ink);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :where(.rt-root):not(:where([data-theme="light"] *, [data-theme="light"])) {
+      --_rt-ink: var(--rt-color-ink, #ece8e1);
+      --_rt-muted: var(--rt-color-muted, #a59f95);
+      --_rt-border: var(--rt-color-border, #3a3631);
+      --_rt-surface: var(--rt-color-surface, #1c1a18);
+      --_rt-step-bg: var(--rt-color-step-bg, #26231f);
+      --_rt-root-bg: var(--rt-color-root-bg, #3d362b);
+      --_rt-accent: var(--rt-color-accent, #e0955a);
+    }
+  }
+  :where([data-theme="dark"] .rt-root, .rt-root[data-theme="dark"]) {
+    --_rt-ink: var(--rt-color-ink, #ece8e1);
+    --_rt-muted: var(--rt-color-muted, #a59f95);
+    --_rt-border: var(--rt-color-border, #3a3631);
+    --_rt-surface: var(--rt-color-surface, #1c1a18);
+    --_rt-step-bg: var(--rt-color-step-bg, #26231f);
+    --_rt-root-bg: var(--rt-color-root-bg, #3d362b);
+    --_rt-accent: var(--rt-color-accent, #e0955a);
+  }
+
+  /* Header */
+  :where(.rt-header) {
+    margin-block-end: 1rem;
+  }
+  :where(.rt-title) {
+    margin: 0;
+    font-size: var(--_rt-title-size);
+    font-weight: 650;
+    letter-spacing: -0.01em;
+  }
+  :where(.rt-meta) {
+    margin: 0.25rem 0 0;
+    color: var(--_rt-muted);
+    font-size: 0.9em;
+  }
+  :where(.rt-description) {
+    margin: 0.5rem 0 0;
+    max-inline-size: 60ch;
+  }
+
+  /* Prep: full-width bars above the table */
+  :where(.rt-prep) {
+    list-style: none;
+    margin: 0 0 0.75rem;
+    padding: 0;
+    display: grid;
+    gap: 0.375rem;
+  }
+  :where(.rt-prep > li) {
+    padding: var(--_rt-cell-padding);
+    border: var(--_rt-border-width) dashed var(--_rt-border);
+    border-radius: var(--_rt-radius);
+  }
+
+  /* Table */
+  :where(.rt-scroll) {
+    overflow-x: auto;
+    border: var(--_rt-border-width) solid var(--_rt-border);
+    border-radius: var(--_rt-radius);
+    background: var(--_rt-surface);
+  }
+  :where(.rt-table) {
+    border-collapse: collapse;
+    border-style: hidden; /* drop the outer cell borders; .rt-scroll draws the frame */
+    inline-size: 100%;
+  }
+  :where(.rt-ingredient, .rt-step) {
+    padding: var(--_rt-cell-padding);
+    border: var(--_rt-border-width) solid var(--_rt-border);
+    text-align: start;
+    vertical-align: middle;
+  }
+  :where(.rt-ingredient) {
+    font-weight: normal;
+    background: var(--_rt-ingredient-bg);
+    white-space: nowrap; /* ingredient lines stay readable; .rt-scroll scrolls if the table gets too wide */
+  }
+  :where(.rt-quantity) {
+    font-weight: var(--_rt-quantity-weight);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  :where(.rt-note) {
+    color: var(--_rt-muted);
+  }
+  :where(.rt-ingredient[data-optional]) {
+    font-style: italic;
+  }
+
+  /* Steps darken with depth; the final step is darkest. */
+  :where(.rt-step) {
+    background: var(--_rt-step-bg);
+    min-inline-size: 4.5rem;
+  }
+  :where(.rt-step[data-depth="2"]) {
+    background: color-mix(in oklab, var(--_rt-step-bg), var(--_rt-root-bg) 25%);
+  }
+  :where(.rt-step[data-depth="3"]) {
+    background: color-mix(in oklab, var(--_rt-step-bg), var(--_rt-root-bg) 45%);
+  }
+  :where(.rt-step[data-depth="4"]) {
+    background: color-mix(in oklab, var(--_rt-step-bg), var(--_rt-root-bg) 65%);
+  }
+  :where(.rt-step:not([data-depth="1"], [data-depth="2"], [data-depth="3"], [data-depth="4"])) {
+    background: color-mix(in oklab, var(--_rt-step-bg), var(--_rt-root-bg) 80%);
+  }
+  :where(.rt-step[data-root]) {
+    background: var(--_rt-root-bg);
+  }
+  :where(.rt-step .rt-action) {
+    font-weight: 550;
+  }
+  :where(.rt-step[data-root] .rt-action) {
+    font-weight: 700;
+  }
+  :where(.rt-step .rt-step-meta, .rt-step .rt-note) {
+    display: block;
+    font-size: 0.85em;
+  }
+  :where(.rt-step-meta) {
+    color: var(--_rt-accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Step list: for screen readers next to the table, visible in list view. */
+  :where(.rt-list) {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  :where(.rt-list .rt-action) {
+    font-weight: 600;
+  }
+  :where(.rt-list .rt-step-meta)::before {
+    content: "(";
+  }
+  :where(.rt-list .rt-step-meta)::after {
+    content: ")";
+  }
+  :where(.rt-list .rt-note)::before {
+    content: "— ";
+  }
+
+  :where(.rt-root[data-view="list"]) :where(.rt-scroll) {
+    display: none;
+  }
+  :where(.rt-root[data-view="list"]) :where(.rt-list) {
+    position: static;
+    inline-size: auto;
+    block-size: auto;
+    margin: 0;
+    padding-inline-start: 1.5rem;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  @container (max-width: 36rem) {
+    :where(.rt-root[data-view="auto"]) :where(.rt-scroll) {
+      display: none;
+    }
+    :where(.rt-root[data-view="auto"]) :where(.rt-list) {
+      position: static;
+      inline-size: auto;
+      block-size: auto;
+      margin: 0;
+      padding-inline-start: 1.5rem;
+      overflow: visible;
+      clip-path: none;
+      white-space: normal;
+      display: grid;
+      gap: 0.5rem;
+    }
+  }
+
+  /* Source credit */
+  :where(.rt-source) {
+    margin: 0.75rem 0 0;
+    font-size: 0.85em;
+    color: var(--_rt-muted);
+  }
+  :where(.rt-source a) {
+    color: var(--_rt-accent);
+  }
+
+  /* Invalid recipe */
+  :where(.rt-root.rt-error) {
+    padding: 0.75rem 1rem;
+    border: var(--_rt-border-width) solid #c2410c;
+    border-radius: var(--_rt-radius);
+    font-size: 0.9em;
+  }
+  :where(.rt-root.rt-error .rt-error) {
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+  }
+
+  @media print {
+    :where(.rt-root) {
+      --_rt-ink: #000;
+      --_rt-border: #000;
+      --_rt-surface: #fff;
+      color: #000;
+    }
+    :where(.rt-root[data-view]) :where(.rt-scroll) {
+      display: block;
+      overflow: visible;
+      break-inside: avoid;
+    }
+    :where(.rt-root[data-view]) :where(.rt-list) {
+      display: none;
+    }
+    :where(.rt-step) {
+      print-color-adjust: exact;
+    }
+  }
+}

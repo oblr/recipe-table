@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://unpkg.com/recipe-table/recipe.schema.json",
+  "title": "Recipe (recipe-table format, schema version 1)",
+  "description": "A recipe as a merge tree. Ingredients are leaves; each step combines ingredients and/or earlier steps (referenced by id) into one result. Every ingredient and every step except the last is used by exactly one step; the last step is the finished dish. Graph rules (unique ids, single use, one final step, no cycles) are not expressible in JSON Schema: run validateRecipe() from recipe-table for them.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "title", "ingredients", "steps"],
+  "properties": {
+    "schemaVersion": { "const": 1, "description": "Always 1 for this version of the format." },
+    "title": { "type": "string", "minLength": 1, "examples": ["Mapo Tofu"] },
+    "description": { "type": "string", "description": "One or two sentences about the dish." },
+    "yield": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["amount", "unit"],
+      "properties": {
+        "amount": { "type": "number", "exclusiveMinimum": 0 },
+        "unit": { "type": "string", "minLength": 1, "examples": ["servings", "loaf", "cookies"] }
+      },
+      "examples": [{ "amount": 4, "unit": "servings" }]
+    },
+    "time": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "prep": { "$ref": "#/$defs/duration" },
+        "cook": { "$ref": "#/$defs/duration" },
+        "total": { "$ref": "#/$defs/duration" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Credit the source whenever the recipe comes from one.",
+      "properties": {
+        "name": { "type": "string", "examples": ["Serious Eats"] },
+        "url": { "type": "string", "format": "uri" },
+        "author": { "type": "string" }
+      }
+    },
+    "prep": {
+      "type": "array",
+      "description": "Steps that use no ingredients, done before the rest: preheating, greasing a pan. Shown above the table.",
+      "items": { "$ref": "#/$defs/prepStep" }
+    },
+    "ingredients": {
+      "type": "array",
+      "minItems": 1,
+      "description": "One entry per table row. An ingredient used in two places (\"1 cup sugar, divided\") is listed twice with different ids and notes.",
+      "items": { "$ref": "#/$defs/ingredient" }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Any order. The tree comes from each step's inputs.",
+      "items": { "$ref": "#/$defs/step" }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique across ingredients, steps and prep steps. Lowercase kebab-case recommended.",
+      "examples": ["brown-sugar", "whisk-dry"]
+    },
+    "duration": {
+      "type": "string",
+      "description": "ISO 8601 duration.",
+      "pattern": "^P(?!$)(\\d+(\\.\\d+)?D)?(T(?=\\d)(\\d+(\\.\\d+)?H)?(\\d+(\\.\\d+)?M)?(\\d+(\\.\\d+)?S)?)?$",
+      "examples": ["PT5M", "PT1H15M"]
+    },
+    "unit": {
+      "enum": ["g", "kg", "mg", "ml", "l", "tsp", "tbsp", "cup", "fl-oz", "oz", "lb", "cm", "inch", "piece", "clove", "slice", "pinch", "dash", "can", "bunch", "sprig", "stalk"],
+      "description": "Canonical unit code. For anything else use \"piece\" and describe it in the ingredient name. Omit for bare counts (\"2 eggs\")."
+    },
+    "amount": {
+      "description": "A number >= 0, or a [min, max] range. Fractions as decimals: 0.5, not \"1/2\".",
+      "oneOf": [
+        { "type": "number", "minimum": 0 },
+        { "type": "array", "prefixItems": [{ "type": "number", "minimum": 0 }, { "type": "number", "minimum": 0 }], "minItems": 2, "maxItems": 2 }
+      ]
+    },
+    "quantity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value"],
+      "properties": {
+        "value": { "$ref": "#/$defs/amount" },
+        "unit": { "$ref": "#/$defs/unit" },
+        "alt": {
+          "type": "array",
+          "description": "The same amount in another unit, only when the source gives it. Never computed.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["value"],
+            "properties": { "value": { "$ref": "#/$defs/amount" }, "unit": { "$ref": "#/$defs/unit" } }
+          }
+        },
+        "scalable": { "type": "boolean", "default": true, "description": "False for amounts that must not scale: \"1 pinch\"." }
+      },
+      "examples": [{ "value": 0.5, "unit": "cup", "alt": [{ "value": 115, "unit": "g" }] }, { "value": 2 }]
+    },
+    "temperature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "unit"],
+      "properties": { "value": { "type": "number" }, "unit": { "enum": ["C", "F"] } },
+      "examples": [{ "value": 180, "unit": "C" }]
+    },
+    "ingredient": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "minLength": 1, "description": "Display name in the recipe's language." },
+        "quantity": { "$ref": "#/$defs/quantity" },
+        "note": { "type": "string", "description": "Preparation note: \"softened\", \"finely chopped\", \"for the topping\"." },
+        "optional": { "type": "boolean" }
+      },
+      "examples": [{ "id": "butter", "name": "butter", "quantity": { "value": 115, "unit": "g" }, "note": "softened" }]
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "action", "inputs"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "action": { "type": "string", "minLength": 1, "description": "Short verb phrase in the source's own words: \"cream\", \"fold in\", \"bake\"." },
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "Ids of the ingredients and/or earlier steps this step combines, top to bottom."
+        },
+        "duration": { "$ref": "#/$defs/duration" },
+        "temperature": { "$ref": "#/$defs/temperature" },
+        "note": { "type": "string", "description": "Extra detail: \"until golden\"." }
+      },
+      "examples": [{ "id": "cream", "action": "cream", "inputs": ["butter", "sugar"], "duration": "PT5M" }]
+    },
+    "prepStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "action"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "action": { "type": "string", "minLength": 1, "examples": ["Preheat the oven"] },
+        "temperature": { "$ref": "#/$defs/temperature" },
+        "note": { "type": "string" }
+      }
+    }
+  }
+}

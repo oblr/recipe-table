@@ -1,0 +1,1 @@
+{ "schemaVersion": 1, "title": "Broken", "ingredients": [{ "id": "a", "name": "a" }, { "id": "b", "name": "b" }], "steps": [{ "id": "x", "action": "mix", "inputs": ["a", "y"] }, { "id": "y", "action": "mix", "inputs": ["b", "x"] }] }

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "title": "Vegetarian Luroufan",
+  "description": "Taiwanese braised rice bowl with tofu and shiitake standing in for pork, slow-cooked in soy sauce, rock sugar and five-spice.",
+  "yield": { "amount": 4, "unit": "servings" },
+  "time": { "prep": "PT40M", "cook": "PT50M", "total": "PT1H30M" },
+  "ingredients": [
+    { "id": "oil", "name": "neutral oil", "quantity": { "value": 3, "unit": "tbsp" } },
+    { "id": "shallots", "name": "shallots", "quantity": { "value": 6 }, "note": "thinly sliced" },
+    { "id": "garlic", "name": "garlic", "quantity": { "value": 4, "unit": "clove" }, "note": "minced" },
+    { "id": "tofu", "name": "firm tofu", "quantity": { "value": 400, "unit": "g" }, "note": "pressed, finely diced" },
+    { "id": "shiitake", "name": "dried shiitake mushrooms", "quantity": { "value": 8 } },
+    { "id": "warm-water", "name": "warm water", "quantity": { "value": 500, "unit": "ml" } },
+    { "id": "shaoxing", "name": "Shaoxing wine", "quantity": { "value": 2, "unit": "tbsp" } },
+    { "id": "light-soy", "name": "light soy sauce", "quantity": { "value": 3, "unit": "tbsp" } },
+    { "id": "dark-soy", "name": "dark soy sauce", "quantity": { "value": 1, "unit": "tbsp" } },
+    { "id": "rock-sugar", "name": "rock sugar", "quantity": { "value": 20, "unit": "g" } },
+    { "id": "five-spice", "name": "five-spice powder", "quantity": { "value": 0.5, "unit": "tsp" } },
+    { "id": "white-pepper", "name": "ground white pepper", "quantity": { "value": 0.25, "unit": "tsp" } },
+    { "id": "eggs", "name": "eggs", "quantity": { "value": 4 }, "note": "hard-boiled and peeled", "optional": true },
+    { "id": "rice", "name": "jasmine rice", "quantity": { "value": 4, "unit": "cup" }, "note": "cooked, hot" },
+    { "id": "pickles", "name": "pickled radish or cucumber", "note": "to serve", "optional": true }
+  ],
+  "steps": [
+    { "id": "fry-shallots", "action": "fry until golden", "inputs": ["oil", "shallots"], "duration": "PT5M" },
+    { "id": "aromatics", "action": "stir in", "inputs": ["fry-shallots", "garlic"], "duration": "PT1M" },
+    { "id": "brown", "action": "fry until lightly browned", "inputs": ["aromatics", "tofu"], "duration": "PT6M" },
+    { "id": "soak", "action": "soak, then dice", "inputs": ["shiitake", "warm-water"], "duration": "PT30M", "note": "keep the soaking water" },
+    { "id": "deglaze", "action": "add with their water, deglaze", "inputs": ["brown", "soak", "shaoxing"] },
+    { "id": "braise", "action": "braise, covered, on low heat", "inputs": ["deglaze", "light-soy", "dark-soy", "rock-sugar", "five-spice", "white-pepper", "eggs"], "duration": "PT40M", "note": "stir now and then; add water if it gets dry" },
+    { "id": "serve", "action": "spoon over", "inputs": ["braise", "rice", "pickles"], "note": "halve the eggs" }
+  ]
+}

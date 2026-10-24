@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "title": "Pancakes",
+  "yield": { "amount": 4, "unit": "servings" },
+  "time": { "total": "PT30M" },
+  "ingredients": [
+    { "id": "flour", "name": "flour", "quantity": { "value": 2, "unit": "cup", "alt": [{ "value": 250, "unit": "g" }] } },
+    { "id": "sugar", "name": "sugar", "quantity": { "value": 2, "unit": "tbsp" } },
+    { "id": "baking-powder", "name": "baking powder", "quantity": { "value": 2, "unit": "tsp" } },
+    { "id": "salt", "name": "salt", "quantity": { "value": 0.5, "unit": "tsp" } },
+    { "id": "eggs", "name": "eggs", "quantity": { "value": 2 } },
+    { "id": "milk", "name": "milk", "quantity": { "value": 1.5, "unit": "cup", "alt": [{ "value": 360, "unit": "ml" }] } },
+    { "id": "butter", "name": "butter", "quantity": { "value": 3, "unit": "tbsp" }, "note": "melted" }
+  ],
+  "steps": [
+    { "id": "whisk-dry", "action": "whisk", "inputs": ["flour", "sugar", "baking-powder", "salt"] },
+    { "id": "whisk-wet", "action": "whisk", "inputs": ["eggs", "milk", "butter"] },
+    { "id": "fold", "action": "fold together", "inputs": ["whisk-dry", "whisk-wet"], "note": "a few lumps are fine" },
+    { "id": "cook", "action": "cook", "inputs": ["fold"], "duration": "PT2M", "note": "per side, on a hot griddle" }
+  ]
+}

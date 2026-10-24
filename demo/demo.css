@@ -1,0 +1,33 @@
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+}
+.demo {
+  min-height: 100vh;
+  padding: 24px 16px;
+  box-sizing: border-box;
+  background: #fbfaf7;
+  color: #1f1d1a;
+}
+.demo[data-theme="dark"] {
+  background: #141311;
+  color: #ece8e1;
+}
+@media (prefers-color-scheme: dark) {
+  .demo:not([data-theme="light"]) {
+    background: #141311;
+    color: #ece8e1;
+  }
+}
+.demo-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+.demo-controls label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}

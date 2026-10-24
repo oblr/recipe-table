@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "title": "Mapo Tofu",
+  "description": "Soft tofu in a numbing, spicy sauce of fermented bean paste, pork and Sichuan pepper.",
+  "yield": { "amount": 4, "unit": "servings" },
+  "time": { "prep": "PT15M", "cook": "PT15M", "total": "PT30M" },
+  "prep": [
+    { "id": "water", "action": "Bring a pot of water to a gentle simmer" }
+  ],
+  "ingredients": [
+    { "id": "oil", "name": "neutral oil", "quantity": { "value": 2, "unit": "tbsp" } },
+    { "id": "pork", "name": "ground pork", "quantity": { "value": 150, "unit": "g" } },
+    { "id": "doubanjiang", "name": "Pixian doubanjiang", "quantity": { "value": 2, "unit": "tbsp" }, "note": "chopped" },
+    { "id": "douchi", "name": "fermented black beans", "quantity": { "value": 1, "unit": "tbsp" }, "note": "rinsed" },
+    { "id": "garlic", "name": "garlic", "quantity": { "value": 3, "unit": "clove" }, "note": "minced" },
+    { "id": "ginger", "name": "ginger", "quantity": { "value": 1, "unit": "tbsp" }, "note": "minced" },
+    { "id": "chili", "name": "chili flakes", "quantity": { "value": [1, 2], "unit": "tsp" } },
+    { "id": "stock", "name": "chicken stock", "quantity": { "value": 250, "unit": "ml" } },
+    { "id": "soy", "name": "light soy sauce", "quantity": { "value": 1, "unit": "tsp" } },
+    { "id": "sugar", "name": "sugar", "quantity": { "value": 1, "unit": "tsp" } },
+    { "id": "tofu", "name": "soft tofu", "quantity": { "value": 400, "unit": "g" }, "note": "in 2 cm cubes" },
+    { "id": "salt", "name": "salt", "quantity": { "value": 1, "unit": "tsp", "scalable": false }, "note": "for the water" },
+    { "id": "cornstarch", "name": "cornstarch", "quantity": { "value": 1, "unit": "tbsp" } },
+    { "id": "cold-water", "name": "cold water", "quantity": { "value": 3, "unit": "tbsp" } },
+    { "id": "sichuan-pepper", "name": "Sichuan peppercorns", "quantity": { "value": 1, "unit": "tsp" }, "note": "toasted and ground" },
+    { "id": "scallions", "name": "scallions", "quantity": { "value": 2 }, "note": "sliced" }
+  ],
+  "steps": [
+    { "id": "blanch", "action": "blanch", "inputs": ["tofu", "salt"], "duration": "PT1M", "note": "then drain" },
+    { "id": "brown", "action": "stir-fry until crisp", "inputs": ["oil", "pork"], "duration": "PT4M" },
+    { "id": "bloom", "action": "fry until the oil turns red", "inputs": ["brown", "doubanjiang", "douchi", "garlic", "ginger", "chili"], "duration": "PT1M" },
+    { "id": "simmer", "action": "add and simmer gently", "inputs": ["bloom", "stock", "soy", "sugar", "blanch"], "duration": "PT5M" },
+    { "id": "slurry", "action": "stir together", "inputs": ["cornstarch", "cold-water"] },
+    { "id": "thicken", "action": "stir in, in 3 additions", "inputs": ["simmer", "slurry"], "note": "until glossy" },
+    { "id": "finish", "action": "top with", "inputs": ["thicken", "sichuan-pepper", "scallions"] }
+  ]
+}
