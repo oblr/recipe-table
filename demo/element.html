@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>recipe-table element demo</title>
+    <!-- Visual test bench for <recipe-table> with inline JSON. `npm run dev`, then open /element.html. -->
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 2rem auto; max-width: 1100px; padding: 0 1rem; }
+      body[data-theme="dark"] { background: #141210; color: #ece8e1; }
+      h1 { font-size: 1rem; margin: 2.5rem 0 0.75rem; color: #6b665e; font-weight: 500; }
+      form { display: flex; flex-wrap: wrap; gap: 1rem; }
+      label { display: flex; flex-direction: column; font-size: 0.85rem; gap: 0.25rem; }
+      #log { font-size: 0.85rem; color: #b42318; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <p><a href="./index.html">React demo</a> · Web Component demo</p>
+    <form>
+      <label>Scale
+        <select id="scale"><option>0.5</option><option selected>1</option><option>2</option><option>3</option></select>
+      </label>
+      <label>View
+        <select id="view"><option>auto</option><option>table</option><option>list</option></select>
+      </label>
+      <label>Theme
+        <select id="theme"><option>system</option><option>light</option><option>dark</option></select>
+      </label>
+      <label>Accent (--rt-color-accent)
+        <input id="accent" type="color" value="#a2581f" />
+      </label>
+    </form>
+
+    <h1>1. Inline JSON: the recipe sits inside the tag, no script needed for the data</h1>
+    <recipe-table locale="en-US">
+      <script type="application/json">
+        {
+          "schemaVersion": 1,
+          "title": "Pancakes",
+          "yield": { "amount": 4, "unit": "servings" },
+          "time": { "total": "PT30M" },
+          "ingredients": [
+            { "id": "flour", "name": "flour", "quantity": { "value": 2, "unit": "cup", "alt": [{ "value": 250, "unit": "g" }] } },
+            { "id": "sugar", "name": "sugar", "quantity": { "value": 2, "unit": "tbsp" } },
+            { "id": "baking-powder", "name": "baking powder", "quantity": { "value": 2, "unit": "tsp" } },
+            { "id": "salt", "name": "salt", "quantity": { "value": 0.5, "unit": "tsp" } },
+            { "id": "eggs", "name": "eggs", "quantity": { "value": 2 } },
+            { "id": "milk", "name": "milk", "quantity": { "value": 1.5, "unit": "cup", "alt": [{ "value": 360, "unit": "ml" }] } },
+            { "id": "butter", "name": "butter", "quantity": { "value": 3, "unit": "tbsp" }, "note": "melted" }
+          ],
+          "steps": [
+            { "id": "whisk-dry", "action": "whisk", "inputs": ["flour", "sugar", "baking-powder", "salt"] },
+            { "id": "whisk-wet", "action": "whisk", "inputs": ["eggs", "milk", "butter"] },
+            { "id": "fold", "action": "fold together", "inputs": ["whisk-dry", "whisk-wet"], "note": "a few lumps are fine" },
+            { "id": "cook", "action": "cook", "inputs": ["fold"], "duration": "PT2M", "note": "per side, on a hot griddle" }
+          ]
+        }
+      </script>
+    </recipe-table>
+
+    <h1>2. Inline JSON with a trailing comma: shows the error block and fires recipe-error</h1>
+    <recipe-table>
+      <script type="application/json">
+        { "schemaVersion": 1, "title": "Broken", }
+      </script>
+    </recipe-table>
+
+    <h1>3. Valid JSON, invalid recipe (two final steps): validation errors with hints</h1>
+    <recipe-table>
+      <script type="application/json">
+        {
+          "schemaVersion": 1,
+          "title": "Two dishes",
+          "ingredients": [
+            { "id": "a", "name": "rice" },
+            { "id": "b", "name": "beans" }
+          ],
+          "steps": [
+            { "id": "boil", "action": "boil", "inputs": ["a"] },
+            { "id": "soak", "action": "soak", "inputs": ["b"] }
+          ]
+        }
+      </script>
+    </recipe-table>
+
+    <p id="log"></p>
+
+    <script type="module">
+      import { defineRecipeTable } from "../src/element";
+      import "../styles.css";
+
+      const log = document.getElementById("log");
+      // Listen before defining: the elements validate (and report) as soon as they are defined.
+      document.addEventListener("recipe-error", (e) => {
+        log.textContent += `recipe-error from "${e.target.closest("recipe-table").previousElementSibling.textContent}":\n`;
+        log.textContent += e.detail.errors.map((x) => `  ${x.path || "/"} [${x.code}] ${x.message}`).join("\n") + "\n\n";
+      });
+
+      defineRecipeTable();
+
+      const tables = document.querySelectorAll("recipe-table");
+      const $ = (id) => document.getElementById(id);
+      $("scale").addEventListener("change", (e) => tables.forEach((t) => t.setAttribute("scale", e.target.value)));
+      $("view").addEventListener("change", (e) => tables.forEach((t) => (t.view = e.target.value)));
+      $("theme").addEventListener("change", (e) => {
+        if (e.target.value === "system") document.body.removeAttribute("data-theme");
+        else document.body.dataset.theme = e.target.value;
+      });
+      $("accent").addEventListener("input", (e) => document.body.style.setProperty("--rt-color-accent", e.target.value));
+    </script>
+  </body>
+</html>

@@ -29,6 +29,9 @@ function Demo() {
 
   return (
     <div className="demo" data-theme={theme === "system" ? undefined : theme}>
+      <p>
+        React demo · <a href="./element.html">Web Component demo</a>
+      </p>
       <form className="demo-controls" onSubmit={(e) => e.preventDefault()}>
         <label>
           Recipe

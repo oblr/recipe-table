@@ -162,7 +162,7 @@ npx recipe-table preview my-recipe.json --scale 2
 ```sh
 npm install
 npm test          # vitest
-npm run dev       # visual test bench (all examples, themes, views, widths)
+npm run dev       # visual test bench: React at /, the element (inline JSON) at /element.html
 npm run build
 ```
 
