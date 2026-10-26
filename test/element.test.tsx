@@ -66,12 +66,14 @@ describe("<recipe-table> matches <RecipeTable>", () => {
     expect(normalize(renderElement({ recipe }).innerHTML)).toBe(renderReact({ recipe }));
   });
 
-  it("without linking unsafe source URLs", () => {
-    const recipe: Recipe = { ...example("pancakes"), source: { name: "Evil", url: "javascript:alert(1)" } };
+  it.each(["javascript:alert(1)", "java\nscript:alert(1)", "\x01javascript:alert(1)"])("without linking the unsafe source URL %j", (url) => {
+    const recipe: Recipe = { ...example("pancakes"), source: { name: "Evil", url } };
     const html = renderReact({ recipe });
     expect(html).not.toContain("<a ");
     expect(html).toContain("Source: Evil");
-    expect(normalize(renderElement({ recipe }).innerHTML)).toBe(html);
+    const el = renderElement({ recipe });
+    expect(el.querySelector("a")).toBeNull();
+    expect(normalize(el.innerHTML)).toBe(html);
   });
 });
 

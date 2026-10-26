@@ -86,11 +86,19 @@ export function partClass(
   return [`rt-${kebab(part)}`, ...extra, classNames?.[part]].filter(Boolean).join(" ");
 }
 
-/** The url if it is safe to link (http, https or relative), otherwise undefined. */
+/**
+ * The url if it is safe to link (http, https or relative), otherwise undefined. Uses the URL parser
+ * rather than a pattern, so it sees the scheme the browser sees: the parser drops tabs, newlines and
+ * leading control characters, which turns "java\nscript:" into "javascript:".
+ */
 export function safeHref(url: string | undefined): string | undefined {
   if (!url) return undefined;
-  const scheme = /^\s*([a-z][a-z0-9+.-]*):/i.exec(url)?.[1]?.toLowerCase();
-  return scheme === undefined || scheme === "http" || scheme === "https" ? url : undefined;
+  try {
+    const { protocol } = new URL(url, "https://relative.invalid/");
+    return protocol === "http:" || protocol === "https:" ? url : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export interface RecipeText {
