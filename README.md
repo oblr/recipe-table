@@ -1,6 +1,6 @@
 # recipe-table
 
-Render recipes as **tabular recipes** in React: ingredients are rows, steps are columns, and each step spans exactly the ingredients it combines. Reading left to right, the table narrows until one cell is left: the dish.
+Render recipes as **tabular recipes** in React or as a Web Component: ingredients are rows, steps are columns, and each step spans exactly the ingredients it combines. Reading left to right, the table narrows until one cell is left: the dish.
 
 ```
 +-----------------------+-------+-------------------------------------+-----------------------------------------+
@@ -23,6 +23,7 @@ Render recipes as **tabular recipes** in React: ingredients are rows, steps are 
 The notation was invented by Michael Chu at [Cooking for Engineers](https://www.cookingforengineers.com/). This package is an independent implementation.
 
 - One component, one required prop, zero runtime dependencies (React 18 or 19 as a peer).
+- A `<recipe-table>` custom element for pages without React: same markup, same CSS.
 - Styling is plain, optional CSS in a cascade layer, driven by `--rt-*` custom properties. Your CSS always wins.
 - Recipe data is plain JSON with a [JSON Schema](./recipe.schema.json) and a validator whose errors explain how to fix them.
 - Accessible: a real `<table>` with row headers and `headers` associations, plus an ordered step list for screen readers and narrow screens.
@@ -116,7 +117,35 @@ Light and dark defaults follow `prefers-color-scheme`. Force one with `data-them
 
 ## Without React
 
-`recipe-table/core` has everything except the component: `validateRecipe`, `layoutRecipe`, `scaleRecipe`, `formatQuantity`, `renderRecipeText`.
+### `<recipe-table>` element
+
+For plain HTML, Vue, Svelte, Angular or a CMS. The recipe JSON can go straight into the page:
+
+```html
+<recipe-table scale="2" locale="en-US">
+  <script type="application/json">{ "schemaVersion": 1, "title": "Pancakes", ... }</script>
+</recipe-table>
+```
+
+```js
+import { defineRecipeTable } from "recipe-table/element";
+import "recipe-table/styles.css";
+
+defineRecipeTable(); // once
+document.querySelector("recipe-table").recipe = recipe; // or set it from code
+```
+
+| | |
+| --- | --- |
+| Attributes | `scale`, `view`, `locale`, `heading-level` (also properties; `headingLevel`) |
+| Properties only | `recipe`, `labels`, `classNames`. There is no `recipe` attribute. |
+| Event | `recipe-error`, bubbles, `event.detail.errors` |
+
+It renders in the light DOM, so styling works exactly as above: tokens on any ancestor or on the element, part classes, `data-theme`. Vue needs `isCustomElement` for the tag; Angular needs `CUSTOM_ELEMENTS_SCHEMA`. Full description: [`custom-elements.json`](./custom-elements.json).
+
+### Core and CLI
+
+`recipe-table/core` has everything except the components: `validateRecipe`, `layoutRecipe`, `scaleRecipe`, `formatQuantity`, `renderRecipeText`.
 
 ```sh
 npx recipe-table validate my-recipe.json

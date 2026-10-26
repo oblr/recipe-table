@@ -58,9 +58,9 @@
               "kind": "field",
               "name": "recipe",
               "type": {
-                "text": "Recipe | undefined"
+                "text": "Recipe | unknown"
               },
-              "description": "The recipe to render (see recipe.schema.json). Validated on every change; invalid data renders an error block and fires recipe-error. Property only: there is no recipe attribute. Alternative: a <script type=\"application/json\"> child."
+              "description": "The recipe to render (see recipe.schema.json). Any value is accepted and validated on every change; invalid data renders an error block and fires recipe-error. Property only: there is no recipe attribute. Alternative: a <script type=\"application/json\"> child."
             },
             {
               "kind": "field",

@@ -46,7 +46,7 @@ let instances = 0;
 export class RecipeTableElement extends Base {
   static observedAttributes = ["scale", "view", "locale", "heading-level"];
 
-  #recipe: Recipe | undefined;
+  #recipe: unknown;
   #labels: Partial<RecipeTableLabels> | undefined;
   #classNames: Partial<Record<RecipeTablePart, string>> | undefined;
   #uid = `rt${++instances}`;
@@ -55,11 +55,14 @@ export class RecipeTableElement extends Base {
   #inlineErrors: ValidationError[] | undefined;
   #rendered = false;
 
-  /** The recipe to render. Validated on every change; invalid data renders an error block. */
-  get recipe(): Recipe | undefined {
+  /**
+   * The recipe to render (a `Recipe`). Any value is accepted, as from fetch() or a JSON import, and
+   * validated on every change: invalid data renders an error block and fires `recipe-error`.
+   */
+  get recipe(): Recipe | unknown {
     return this.#recipe;
   }
-  set recipe(value: Recipe | undefined) {
+  set recipe(value: Recipe | unknown) {
     this.#recipe = value;
     this.#inlineErrors = undefined;
     this.#update();

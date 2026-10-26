@@ -8,19 +8,73 @@ library correctly without web access. Everything below is checked by the package
 ```tsx
 import { RecipeTable, validateRecipe } from "recipe-table";
 import "recipe-table/styles.css"; // forget this and the table renders unstyled (still readable)
-import recipe from "./pancakes.json";
+import data from "./pancakes.json";
 
-const result = validateRecipe(recipe);
+// JSON imports are typed loosely (unit: string), so pass the recipe validateRecipe returns.
+const result = validateRecipe(data);
 if (!result.ok) console.error(result.errors); // fix the data and retry
 
 export default function Page() {
-  return <RecipeTable recipe={recipe} />;
+  return result.ok ? <RecipeTable recipe={result.recipe} /> : null;
 }
 ```
 
 Only `recipe` is required. Other props: `scale`, `view` ("auto" | "table" | "list"), `locale`,
 `labels`, `headingLevel`, `className`, `classNames`, `style`, `onError`. Types and JSDoc:
 `dist/index.d.ts`.
+
+## Render without React
+
+`<recipe-table>` is a custom element with the same markup and CSS as `RecipeTable`, for plain HTML,
+Vue, Svelte, Angular and CMS pages. In React, use `RecipeTable` instead.
+
+The simplest form needs no script of your own: put the recipe JSON inside the tag.
+
+```html
+<recipe-table scale="2" locale="en-US">
+  <script type="application/json">
+    {
+      "schemaVersion": 1,
+      "title": "Vinaigrette",
+      "ingredients": [
+        { "id": "oil", "name": "olive oil", "quantity": { "value": 3, "unit": "tbsp" } },
+        { "id": "vinegar", "name": "red wine vinegar", "quantity": { "value": 1, "unit": "tbsp" } },
+        { "id": "salt", "name": "salt", "quantity": { "value": 1, "unit": "pinch", "scalable": false } }
+      ],
+      "steps": [{ "id": "shake", "action": "shake in a jar", "inputs": ["oil", "vinegar", "salt"] }]
+    }
+  </script>
+</recipe-table>
+```
+
+Then register the element once and load the CSS, from your entry file (with a bundler) or a
+`<script type="module">` (without one, import `dist/element.js` from a CDN or an import map):
+
+```ts
+import { defineRecipeTable } from "recipe-table/element";
+import "recipe-table/styles.css";
+import data from "./pancakes.json";
+
+defineRecipeTable(); // registers <recipe-table>; safe to call twice, a no-op on the server
+
+// Or set the recipe from code. It is a property: there is no recipe attribute.
+const el = document.querySelector("recipe-table")!;
+el.recipe = data; // any value; the element validates it like inline JSON
+document.addEventListener("recipe-error", (e) => console.error(e.detail.errors));
+```
+
+- Attributes: `scale`, `view`, `locale`, `heading-level`. Each is also a property (`headingLevel`).
+- Properties only: `recipe`, `labels`, `classNames`. Objects never go in attributes; a `recipe`
+  attribute is ignored with a console warning.
+- Invalid data renders the error block and fires `recipe-error` (bubbles; `detail.errors` holds the
+  same error objects as `validateRecipe`). Unparseable inline JSON reports `invalid_type` at path "".
+- It renders nothing until it has a recipe, renders in the browser only (no server HTML), and
+  replaces anything inside the tag.
+- Frameworks: Vue needs `compilerOptions.isCustomElement: (tag) => tag === "recipe-table"`, then
+  `:recipe="data"`. Svelte: `recipe={data}`. Angular: add `CUSTOM_ELEMENTS_SCHEMA`, then
+  `[recipe]="data"`. Each sets the property, not an attribute.
+- Machine-readable description (attributes, properties, event, CSS tokens): `custom-elements.json`.
+  Types: `dist/element.d.ts`.
 
 ## Produce recipe data
 
@@ -51,15 +105,18 @@ npx recipe-table validate recipe.json           # add --json for machine-readabl
 npx recipe-table preview recipe.json --scale 2  # prints the table as ASCII
 ```
 
-In code: `renderRecipeText(recipe)` from `recipe-table/core` returns the same ASCII table.
+In code: `renderRecipeText(recipe)` from `recipe-table/core` returns the same ASCII table. In a
+jsdom test, the element renders synchronously: call `defineRecipeTable()`, append the element, set
+`recipe`, then read `el.innerHTML`.
 
 ## Restyle
 
 - Do not use `!important`; the shipped CSS is in `@layer recipe-table` with zero-specificity
   selectors, so any normal rule wins.
-- Prefer tokens: set `--rt-*` custom properties on any ancestor. Full list with defaults and
+- Prefer tokens: set `--rt-*` custom properties on any ancestor (or `<recipe-table>` itself). Full list with defaults and
   purpose: `tokens.json` (`tokens`), plus every part class and data attribute (`parts`).
 - Dark mode: `prefers-color-scheme`, or `data-theme="dark" | "light"` on an ancestor.
-- Utility-class users: `classNames={{ step: "...", quantity: "..." }}`.
+- Utility-class users: `classNames={{ step: "...", quantity: "..." }}` (element: the `classNames`
+  property).
 - Fully custom markup: `useRecipeTable(recipe, { scale })` returns `{ ok, grid }`; see `Grid` in
   `dist/core.d.ts`.
