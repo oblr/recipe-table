@@ -49,3 +49,18 @@ describe("custom-elements.json", () => {
     expect(module!.exports.find((e) => e.kind === "custom-element-definition")!.name).toBe(cls.tagName);
   });
 });
+
+describe("dist/define.js", () => {
+  it("is the CDN default, kept by bundlers, and listed in the manifest", () => {
+    expect(pkg.jsdelivr).toBe("dist/define.js");
+    expect(pkg.unpkg).toBe("dist/define.js");
+    expect(pkg.sideEffects).toContain("./dist/define.js");
+    expect(pkg.exports["./element/define"].import.default).toBe("./dist/define.js");
+    expect(manifest.modules.find((m) => m.path === "dist/define.js")!.exports[0]!.kind).toBe("custom-element-definition");
+  });
+
+  it("registers <recipe-table> on import", async () => {
+    await import("../src/define");
+    expect(customElements.get("recipe-table")).toBe(element.RecipeTableElement);
+  });
+});

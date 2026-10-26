@@ -263,6 +263,22 @@
           }
         }
       ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "dist/define.js",
+      "description": "Importing this module registers <recipe-table>. Default file of the jsDelivr and unpkg URLs.",
+      "declarations": [],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "recipe-table",
+          "declaration": {
+            "name": "RecipeTableElement",
+            "module": "dist/element.js"
+          }
+        }
+      ]
     }
   ]
 }

@@ -165,6 +165,24 @@ describe("<recipe-table>", () => {
     warn.mockRestore();
   });
 
+  it("gives two copies of the library different ids", async () => {
+    // Two fresh module instances, as when a page loads both a CDN and a bundled copy.
+    type Module = typeof import("../src/element/RecipeTableElement");
+    const load = (copy: string) => import(/* @vite-ignore */ `../src/element/RecipeTableElement.ts?${copy}`) as Promise<Module>;
+    const [one, two] = await Promise.all([load("one"), load("two")]);
+    expect(one.RecipeTableElement).not.toBe(two.RecipeTableElement);
+    one.defineRecipeTable("copy-one-table");
+    two.defineRecipeTable("copy-two-table");
+    for (const tag of ["copy-one-table", "copy-two-table"]) {
+      const el = document.createElement(tag) as RecipeTableElement;
+      el.recipe = example("pancakes");
+      document.body.append(el);
+    }
+    const ids = [...document.querySelectorAll("[id]")].map((e) => e.id);
+    expect(ids.length).toBeGreaterThan(2);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
   it("can be defined more than once", () => {
     expect(() => defineRecipeTable()).not.toThrow();
     expect(customElements.get("recipe-table")).toBe(RecipeTableElement);

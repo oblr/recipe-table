@@ -25,6 +25,9 @@ const Base = (typeof HTMLElement === "undefined" ? class {} : HTMLElement) as ty
 
 const VIEWS: RecipeTableView[] = ["auto", "table", "list"];
 const PROPERTIES = ["recipe", "labels", "classNames", "scale", "view", "locale", "headingLevel"] as const;
+// Ids are `${PREFIX}-${n}`. The random part keeps two copies of the library on one page (say a CDN
+// copy and a bundled one) from producing the same ids, which would break the headers associations.
+const PREFIX = `rt${Math.random().toString(36).slice(2, 6)}`;
 let instances = 0;
 
 /**
@@ -49,7 +52,7 @@ export class RecipeTableElement extends Base {
   #recipe: unknown;
   #labels: Partial<RecipeTableLabels> | undefined;
   #classNames: Partial<Record<RecipeTablePart, string>> | undefined;
-  #uid = `rt${++instances}`;
+  #uid = `${PREFIX}-${++instances}`;
   #reported: { recipe: unknown; scale: number } | undefined;
   /** Set when the inline <script type="application/json"> is not valid JSON. */
   #inlineErrors: ValidationError[] | undefined;

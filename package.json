@@ -13,12 +13,16 @@
   },
   "type": "module",
   "sideEffects": [
-    "*.css"
+    "*.css",
+    "./dist/define.js",
+    "./dist/define.cjs"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "customElements": "custom-elements.json",
+  "jsdelivr": "dist/define.js",
+  "unpkg": "dist/define.js",
   "exports": {
     ".": {
       "import": {
@@ -48,6 +52,16 @@
       "require": {
         "types": "./dist/element.d.cts",
         "default": "./dist/element.cjs"
+      }
+    },
+    "./element/define": {
+      "import": {
+        "types": "./dist/define.d.ts",
+        "default": "./dist/define.js"
+      },
+      "require": {
+        "types": "./dist/define.d.cts",
+        "default": "./dist/define.cjs"
       }
     },
     "./styles.css": "./styles.css",
