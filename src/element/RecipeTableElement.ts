@@ -31,6 +31,9 @@ let instances = 0;
  * `<recipe-table>`: the same markup as the React `<RecipeTable>`, without React. Renders into the
  * light DOM, so styles.css, `--rt-*` tokens, `data-theme` and your own CSS apply unchanged.
  *
+ * The recipe comes from the `recipe` property, or from a `<script type="application/json">` child
+ * read when the element connects. There is no `recipe` attribute.
+ *
  * Attributes: `scale`, `view`, `locale`, `heading-level`. Properties: the same plus `recipe`,
  * `labels` and `classNames`. Fires `recipe-error` (detail: `{ errors }`) when the recipe is invalid.
  *
@@ -48,6 +51,9 @@ export class RecipeTableElement extends Base {
   #classNames: Partial<Record<RecipeTablePart, string>> | undefined;
   #uid = `rt${++instances}`;
   #reported: { recipe: unknown; scale: number } | undefined;
+  /** Set when the inline <script type="application/json"> is not valid JSON. */
+  #inlineErrors: ValidationError[] | undefined;
+  #rendered = false;
 
   /** The recipe to render. Validated on every change; invalid data renders an error block. */
   get recipe(): Recipe | undefined {
@@ -55,6 +61,7 @@ export class RecipeTableElement extends Base {
   }
   set recipe(value: Recipe | undefined) {
     this.#recipe = value;
+    this.#inlineErrors = undefined;
     this.#update();
   }
 
@@ -121,6 +128,12 @@ export class RecipeTableElement extends Base {
         (this as Record<string, unknown>)[name] = value;
       }
     }
+    if (this.hasAttribute("recipe")) {
+      console.warn(
+        'recipe-table: the "recipe" attribute is ignored. Set the property instead (el.recipe = data), or put the recipe JSON in a <script type="application/json"> inside <recipe-table>.',
+      );
+    }
+    if (this.#recipe === undefined && !this.#inlineErrors) this.#readInlineRecipe();
     this.#update();
   }
 
@@ -128,18 +141,55 @@ export class RecipeTableElement extends Base {
     this.#update();
   }
 
+  /** Take the recipe from a `<script type="application/json">` child; rendering replaces the script. */
+  #readInlineRecipe(): void {
+    const script = [...this.children].find((c) => c.localName === "script" && c.getAttribute("type") === "application/json");
+    if (!script) {
+      // Defined while the parser had not reached our children yet: look again once it has.
+      if (this.ownerDocument.readyState === "loading") {
+        this.ownerDocument.addEventListener(
+          "DOMContentLoaded",
+          () => {
+            if (this.#recipe !== undefined || this.#inlineErrors) return;
+            this.#readInlineRecipe();
+            this.#update();
+          },
+          { once: true },
+        );
+      }
+      return;
+    }
+    try {
+      this.#recipe = JSON.parse(script.textContent ?? "");
+    } catch (e) {
+      this.#inlineErrors = [
+        {
+          path: "",
+          code: "invalid_type",
+          message: `The <script type="application/json"> inside <recipe-table> is not valid JSON: ${(e as Error).message}`,
+          hint: "Put one recipe object in the script as plain JSON: double quotes, no comments, no trailing commas.",
+        },
+      ];
+    }
+  }
+
   #update(): void {
     if (!this.isConnected) return;
-    if (this.#recipe === undefined) {
-      this.replaceChildren();
+    const source = this.#inlineErrors ?? this.#recipe;
+    if (source === undefined) {
+      // Only clear our own output: before the first render the children may hold the inline recipe,
+      // and an upgrade calls attributeChangedCallback before connectedCallback has read it.
+      if (this.#rendered) this.replaceChildren();
+      this.#rendered = false;
       return;
     }
     const { scale } = this;
-    const table = prepareRecipe(this.#recipe, scale);
+    const table = this.#inlineErrors ? { ok: false as const, errors: this.#inlineErrors } : prepareRecipe(this.#recipe, scale);
     this.replaceChildren(table.ok ? this.#table(table) : this.#errors(table.errors));
+    this.#rendered = true;
     // Report each new set of errors once, like onError in React: only when recipe or scale changed.
-    if (!table.ok && (this.#reported?.recipe !== this.#recipe || this.#reported.scale !== scale)) {
-      this.#reported = { recipe: this.#recipe, scale };
+    if (!table.ok && (this.#reported?.recipe !== source || this.#reported.scale !== scale)) {
+      this.#reported = { recipe: source, scale };
       this.dispatchEvent(new CustomEvent<RecipeErrorDetail>("recipe-error", { detail: { errors: table.errors }, bubbles: true }));
     } else if (table.ok) {
       this.#reported = undefined;
@@ -295,6 +345,13 @@ declare global {
     "recipe-table": RecipeTableElement;
   }
   interface HTMLElementEventMap {
+    "recipe-error": CustomEvent<RecipeErrorDetail>;
+  }
+  // recipe-error bubbles, so one listener on document or window catches every table on the page.
+  interface DocumentEventMap {
+    "recipe-error": CustomEvent<RecipeErrorDetail>;
+  }
+  interface WindowEventMap {
     "recipe-error": CustomEvent<RecipeErrorDetail>;
   }
 }

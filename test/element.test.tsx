@@ -133,6 +133,38 @@ describe("<recipe-table>", () => {
     expect(el.childNodes).toHaveLength(0);
   });
 
+  it("reads the recipe from an inline JSON script", () => {
+    const recipe = example("pancakes");
+    document.body.innerHTML = `<recipe-table locale="en-US"><script type="application/json">${JSON.stringify(recipe)}</script></recipe-table>`;
+    const el = document.querySelector("recipe-table")!;
+    expect(el.querySelector("script")).toBeNull();
+    expect(normalize(el.innerHTML)).toBe(renderReact({ recipe, locale: "en-US" }));
+    // Moving the element keeps the recipe even though the script is gone.
+    document.body.append(document.createElement("div"));
+    document.body.lastElementChild!.append(el);
+    expect(el.querySelector("table")).toBeTruthy();
+  });
+
+  it("reports inline JSON that does not parse", () => {
+    const onError = vi.fn();
+    document.addEventListener("recipe-error", (e) => onError(e.detail.errors), { once: true });
+    document.body.innerHTML = `<recipe-table><script type="application/json">{ "title": "x", }</script></recipe-table>`;
+    const el = document.querySelector("recipe-table")!;
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError.mock.calls[0]![0][0]).toMatchObject({ path: "", code: "invalid_type" });
+    expect(el.querySelector('[role="alert"]')!.textContent).toContain("not valid JSON");
+    el.recipe = example("pancakes");
+    expect(el.querySelector("table")).toBeTruthy();
+  });
+
+  it("warns that a recipe attribute is ignored", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    document.body.innerHTML = `<recipe-table recipe='{"title":"x"}'></recipe-table>`;
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('"recipe" attribute is ignored'));
+    expect(document.querySelector("recipe-table")!.childNodes).toHaveLength(0);
+    warn.mockRestore();
+  });
+
   it("can be defined more than once", () => {
     expect(() => defineRecipeTable()).not.toThrow();
     expect(customElements.get("recipe-table")).toBe(RecipeTableElement);
