@@ -8,7 +8,7 @@ Decided 2026-10-24 in the design doc review. One line each; expand into a full r
 | 002 | The grid is derived, never stored: `layoutRecipe()` assigns a step's column as one right of its deepest input; shallower inputs stretch with `colSpan`. | Accepted |
 | 003 | Styling is plain CSS in `@layer recipe-table` with `:where()` selectors and `--rt-*` tokens; token names and part classes are public API. Default look: modern minimal. | Accepted |
 | 004 | Markup is a real `<table>` (`th[scope=row]`, `td[headers]`) plus an ordered step list for screen readers and narrow screens. `view="auto"` switches with a CSS container query (36rem). | Accepted |
-| 005 | React 18/19 is the only peer dependency; no runtime dependencies; a React-free `core` entry. A Web Component may follow later. | Accepted |
+| 005 | React 18/19 is the only peer dependency (optional since 0.2, for element-only installs); no runtime dependencies; a React-free `core` entry. The `<recipe-table>` Web Component shipped in 0.2. | Accepted |
 | 006 | `recipe.schema.json` is the data contract. Types are hand-written to match for now; a test checks examples against both. | Accepted (generation deferred) |
 | 007 | Agent docs (`AGENTS.md`, `llms.txt`, `tokens.json`, examples) ship inside the npm package. | Accepted |
 | 008 | The package never calls an LLM; free-text conversion is the app's job. | Accepted |
@@ -19,3 +19,5 @@ Decided 2026-10-24 in the design doc review. One line each; expand into a full r
 | 013 | v1 has no built-in scale or unit buttons: `scale` (and later `units`) are props; an optional `<RecipeControls>` may follow in v1.x. | Accepted |
 | 014 | Browser floor: 2023-era evergreen browsers (`@layer`, `:where()`, `color-mix()`, container queries). | Accepted |
 | 015 | Licence MIT; README credits Michael Chu for the notation. | Accepted |
+| 016 | `<recipe-table>` renders into the light DOM, not a shadow root, so ADR 003's styling API (tokens, part classes, `data-theme`, page CSS, `classNames`) works unchanged. Its markup equals `RecipeTable`'s; a test compares them for every example. | Accepted 2026-10-26 |
+| 017 | The element takes its recipe from the `recipe` property or a `<script type="application/json">` child, read once on connect; never from an attribute (a warning says so). No `src` URL: the package does no network access. | Accepted 2026-10-26 |

@@ -28,9 +28,13 @@ Only `recipe` is required. Other props: `scale`, `view` ("auto" | "table" | "lis
 `<recipe-table>` is a custom element with the same markup and CSS as `RecipeTable`, for plain HTML,
 Vue, Svelte, Angular and CMS pages. In React, use `RecipeTable` instead.
 
-The simplest form needs no script of your own: put the recipe JSON inside the tag.
+The simplest form needs no script of your own: two tags load the CSS and register the element, and
+the recipe JSON goes inside the tag.
 
 ```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/recipe-table@0.2/styles.css" />
+<script type="module" src="https://cdn.jsdelivr.net/npm/recipe-table@0.2/dist/define.js"></script>
+
 <recipe-table scale="2" locale="en-US">
   <script type="application/json">
     {
@@ -47,8 +51,8 @@ The simplest form needs no script of your own: put the recipe JSON inside the ta
 </recipe-table>
 ```
 
-Then register the element once and load the CSS, from your entry file (with a bundler) or a
-`<script type="module">` (without one, import `dist/element.js` from a CDN or an import map):
+With a bundler, register the element and load the CSS from your entry file instead
+(`import "recipe-table/element/define"` also registers it):
 
 ```ts
 import { defineRecipeTable } from "recipe-table/element";
@@ -68,6 +72,9 @@ document.addEventListener("recipe-error", (e) => console.error(e.detail.errors))
   attribute is ignored with a console warning.
 - Invalid data renders the error block and fires `recipe-error` (bubbles; `detail.errors` holds the
   same error objects as `validateRecipe`). Unparseable inline JSON reports `invalid_type` at path "".
+- Inline JSON is read once, when the element connects (or once the page has finished parsing);
+  later changes go through `el.recipe`. Write `<` as `\u003c` inside JSON strings: a literal
+  `</script>` in recipe text would end the script early.
 - It renders nothing until it has a recipe, renders in the browser only (no server HTML), and
   replaces anything inside the tag.
 - Frameworks: Vue needs `compilerOptions.isCustomElement: (tag) => tag === "recipe-table"`, then

@@ -28,7 +28,7 @@ The notation was invented by Michael Chu at [Cooking for Engineers](https://www.
 - Recipe data is plain JSON with a [JSON Schema](./recipe.schema.json) and a validator whose errors explain how to fix them.
 - Accessible: a real `<table>` with row headers and `headers` associations, plus an ordered step list for screen readers and narrow screens.
 
-> Status: 0.1, first minimal version. The API may change before 1.0.
+> Status: 0.2. The API may change before 1.0.
 
 ## Install
 
@@ -119,13 +119,18 @@ Light and dark defaults follow `prefers-color-scheme`. Force one with `data-them
 
 ### `<recipe-table>` element
 
-For plain HTML, Vue, Svelte, Angular or a CMS. The recipe JSON can go straight into the page:
+For plain HTML, Vue, Svelte, Angular or a CMS. Without a build step, two tags in `<head>` load it, and the recipe JSON goes straight into the page:
 
 ```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/recipe-table@0.2/styles.css" />
+<script type="module" src="https://cdn.jsdelivr.net/npm/recipe-table@0.2/dist/define.js"></script>
+
 <recipe-table scale="2" locale="en-US">
   <script type="application/json">{ "schemaVersion": 1, "title": "Pancakes", ... }</script>
 </recipe-table>
 ```
+
+With a bundler:
 
 ```js
 import { defineRecipeTable } from "recipe-table/element";

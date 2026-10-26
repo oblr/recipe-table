@@ -1,6 +1,6 @@
 {
   "name": "recipe-table",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Render recipes as tabular recipes (ingredients are rows, steps are columns) in React. Plain-CSS theming, JSON Schema, agent-friendly.",
   "license": "MIT",
   "repository": {

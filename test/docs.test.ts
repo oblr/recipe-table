@@ -130,6 +130,17 @@ describe("AGENTS.md", () => {
   });
 });
 
+describe("CDN URLs in AGENTS.md and README.md", () => {
+  it("point to files the package ships, at the version being released", () => {
+    const urls = [...(agents + readme).matchAll(/cdn\.jsdelivr\.net\/npm\/recipe-table@([^/]+)\/([^"\s]+)/g)];
+    expect(urls.length).toBeGreaterThan(1);
+    for (const [, version, path] of urls) {
+      expect(pkg.version.startsWith(`${version}.`) || pkg.version === version, `@${version} vs ${pkg.version}`).toBe(true);
+      expectShipped(path!);
+    }
+  });
+});
+
 describe("llms.txt", () => {
   it("only links to files the package ships", () => {
     const links = [...llms.matchAll(/\]\(([^)]+)\)/g)].map((m) => m[1]!);
