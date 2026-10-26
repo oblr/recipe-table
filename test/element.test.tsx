@@ -145,6 +145,24 @@ describe("<recipe-table>", () => {
     expect(el.querySelector("table")).toBeTruthy();
   });
 
+  it("reads inline JSON that the parser adds after the element connected", () => {
+    // A classic script in <head> defines the element, so it connects before its children exist.
+    const readyState = vi.spyOn(document, "readyState", "get").mockReturnValue("loading");
+    const el = document.createElement("recipe-table");
+    el.setAttribute("locale", "en-US");
+    document.body.append(el);
+    expect(el.childNodes).toHaveLength(0);
+    const script = document.createElement("script");
+    script.type = "application/json";
+    script.textContent = JSON.stringify(example("pancakes"));
+    el.append(script);
+    readyState.mockReturnValue("interactive");
+    document.dispatchEvent(new Event("DOMContentLoaded"));
+    readyState.mockRestore();
+    expect(el.querySelector("script")).toBeNull();
+    expect(el.querySelector(".rt-title")!.textContent).toBe("Pancakes");
+  });
+
   it("reports inline JSON that does not parse", () => {
     const onError = vi.fn();
     document.addEventListener("recipe-error", (e) => onError(e.detail.errors), { once: true });
