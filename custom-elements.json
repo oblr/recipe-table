@@ -1,0 +1,268 @@
+{
+  "schemaVersion": "2.1.0",
+  "readme": "AGENTS.md",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "dist/element.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "name": "RecipeTableElement",
+          "description": "Renders a recipe as a tabular recipe: ingredients are rows, steps are columns, each step spans the ingredients it combines. Same markup as the React <RecipeTable>, in the light DOM, so recipe-table/styles.css, --rt-* tokens, data-theme and page CSS apply. Register it with defineRecipeTable().",
+          "customElement": true,
+          "tagName": "recipe-table",
+          "superclass": {
+            "name": "HTMLElement"
+          },
+          "attributes": [
+            {
+              "name": "scale",
+              "fieldName": "scale",
+              "type": {
+                "text": "number"
+              },
+              "default": "1",
+              "description": "Multiply quantities and yield. Durations and temperatures never scale. Anything but a number > 0 means 1."
+            },
+            {
+              "name": "view",
+              "fieldName": "view",
+              "type": {
+                "text": "\"auto\" | \"table\" | \"list\""
+              },
+              "default": "\"auto\"",
+              "description": "\"auto\" shows the table, or the numbered step list when the element is narrower than 36rem. Unknown values mean \"auto\"."
+            },
+            {
+              "name": "locale",
+              "fieldName": "locale",
+              "type": {
+                "text": "string"
+              },
+              "default": "the runtime's locale",
+              "description": "BCP 47 locale for numbers, e.g. \"de-DE\"."
+            },
+            {
+              "name": "heading-level",
+              "fieldName": "headingLevel",
+              "type": {
+                "text": "2 | 3 | 4 | 5 | 6"
+              },
+              "default": "2",
+              "description": "Heading level of the recipe title."
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "recipe",
+              "type": {
+                "text": "Recipe | undefined"
+              },
+              "description": "The recipe to render (see recipe.schema.json). Validated on every change; invalid data renders an error block and fires recipe-error. Property only: there is no recipe attribute. Alternative: a <script type=\"application/json\"> child."
+            },
+            {
+              "kind": "field",
+              "name": "labels",
+              "type": {
+                "text": "Partial<RecipeTableLabels> | undefined"
+              },
+              "description": "Override UI strings and unit names. Recipe text is never translated."
+            },
+            {
+              "kind": "field",
+              "name": "classNames",
+              "type": {
+                "text": "Partial<Record<RecipeTablePart, string>> | undefined"
+              },
+              "description": "Extra classes per part, e.g. for Tailwind: { step: \"bg-amber-100\" }."
+            },
+            {
+              "kind": "field",
+              "name": "scale",
+              "type": {
+                "text": "number"
+              },
+              "description": "Multiply quantities and yield. Durations and temperatures never scale. Anything but a number > 0 means 1.",
+              "default": "1",
+              "attribute": "scale",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "view",
+              "type": {
+                "text": "\"auto\" | \"table\" | \"list\""
+              },
+              "description": "\"auto\" shows the table, or the numbered step list when the element is narrower than 36rem. Unknown values mean \"auto\".",
+              "default": "\"auto\"",
+              "attribute": "view",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "locale",
+              "type": {
+                "text": "string"
+              },
+              "description": "BCP 47 locale for numbers, e.g. \"de-DE\".",
+              "default": "the runtime's locale",
+              "attribute": "locale",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "headingLevel",
+              "type": {
+                "text": "2 | 3 | 4 | 5 | 6"
+              },
+              "description": "Heading level of the recipe title.",
+              "default": "2",
+              "attribute": "heading-level",
+              "reflects": true
+            }
+          ],
+          "events": [
+            {
+              "name": "recipe-error",
+              "type": {
+                "text": "CustomEvent<{ errors: ValidationError[] }>"
+              },
+              "description": "The recipe is invalid. Fired once per new recipe or scale; bubbles. Each error has path, code, message and an optional hint."
+            }
+          ],
+          "slots": [
+            {
+              "name": "",
+              "description": "Optionally one <script type=\"application/json\"> holding the recipe, read when the element connects. Any other content is replaced on render."
+            }
+          ],
+          "cssProperties": [
+            {
+              "name": "--rt-font-family",
+              "description": "All text",
+              "default": "inherit"
+            },
+            {
+              "name": "--rt-font-size",
+              "description": "Base size; everything else scales from it",
+              "default": "1rem"
+            },
+            {
+              "name": "--rt-title-size",
+              "description": "Recipe title",
+              "default": "1.5em"
+            },
+            {
+              "name": "--rt-color-ink",
+              "description": "Text",
+              "default": "#1f1d1a"
+            },
+            {
+              "name": "--rt-color-muted",
+              "description": "Notes, meta line, source",
+              "default": "#6b665e"
+            },
+            {
+              "name": "--rt-color-border",
+              "description": "Cell borders and frame",
+              "default": "#e3ded5"
+            },
+            {
+              "name": "--rt-color-surface",
+              "description": "Table background",
+              "default": "#ffffff"
+            },
+            {
+              "name": "--rt-color-ingredient-bg",
+              "description": "Ingredient cells",
+              "default": "transparent"
+            },
+            {
+              "name": "--rt-color-step-bg",
+              "description": "Step cells at depth 1; deeper steps mix toward --rt-color-root-bg",
+              "default": "#f6f4ef"
+            },
+            {
+              "name": "--rt-color-root-bg",
+              "description": "Final step (the finished dish)",
+              "default": "#e8e1d3"
+            },
+            {
+              "name": "--rt-color-accent",
+              "description": "Step times and temperatures, links",
+              "default": "#a2581f"
+            },
+            {
+              "name": "--rt-border-width",
+              "description": "Grid lines",
+              "default": "1px"
+            },
+            {
+              "name": "--rt-radius",
+              "description": "Outer corners and prep bars",
+              "default": "10px"
+            },
+            {
+              "name": "--rt-cell-padding",
+              "description": "Cell padding",
+              "default": "0.55rem 0.8rem"
+            },
+            {
+              "name": "--rt-quantity-weight",
+              "description": "Quantity emphasis",
+              "default": "600"
+            }
+          ]
+        },
+        {
+          "kind": "function",
+          "name": "defineRecipeTable",
+          "description": "Register the element. Safe to call more than once; a no-op without a DOM.",
+          "parameters": [
+            {
+              "name": "tagName",
+              "type": {
+                "text": "string"
+              },
+              "default": "\"recipe-table\"",
+              "optional": true
+            }
+          ],
+          "return": {
+            "type": {
+              "text": "void"
+            }
+          }
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "RecipeTableElement",
+          "declaration": {
+            "name": "RecipeTableElement",
+            "module": "dist/element.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "defineRecipeTable",
+          "declaration": {
+            "name": "defineRecipeTable",
+            "module": "dist/element.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "recipe-table",
+          "declaration": {
+            "name": "RecipeTableElement",
+            "module": "dist/element.js"
+          }
+        }
+      ]
+    }
+  ]
+}
