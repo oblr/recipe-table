@@ -137,3 +137,16 @@ export function recipeText(recipe: Recipe, grid: Grid, labels: RecipeTableLabels
     stepInputs: (s) => s.inputs.map(inputText).join(", "),
   };
 }
+
+/**
+ * Serialize a recipe for a `<script type="application/json">` inside `<recipe-table>`. Use it
+ * whenever a server writes recipe data it did not author into a page: plain JSON.stringify lets a
+ * string such as "</script><script>alert(1)</script>" end the script and inject markup. This
+ * escapes `<`, `>` and `&` as <, > and &, which JSON.parse reads back unchanged.
+ *
+ * @example
+ * const html = `<recipe-table><script type="application/json">${recipeToInlineJson(recipe)}</script></recipe-table>`;
+ */
+export function recipeToInlineJson(recipe: Recipe | unknown): string {
+  return (JSON.stringify(recipe) ?? "null").replace(/[<>&]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, "0")}`);
+}

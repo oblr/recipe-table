@@ -73,8 +73,18 @@ document.addEventListener("recipe-error", (e) => console.error(e.detail.errors))
 - Invalid data renders the error block and fires `recipe-error` (bubbles; `detail.errors` holds the
   same error objects as `validateRecipe`). Unparseable inline JSON reports `invalid_type` at path "".
 - Inline JSON is read once, when the element connects (or once the page has finished parsing);
-  later changes go through `el.recipe`. Write `<` as `\u003c` inside JSON strings: a literal
-  `</script>` in recipe text would end the script early.
+  later changes go through `el.recipe`.
+- Security: when a server writes recipe data into the page, serialize it with `recipeToInlineJson`,
+  never plain `JSON.stringify`. A recipe string containing `</script>` would otherwise end the
+  script and inject HTML (XSS). The helper escapes `<`, `>` and `&`; the element reads it back
+  unchanged. Hand-written JSON: write `<` as `\u003c`.
+
+```ts
+import { recipeToInlineJson } from "recipe-table/core";
+import data from "./pancakes.json"; // or anything from a user, a database or an LLM
+
+const html = `<recipe-table><script type="application/json">${recipeToInlineJson(data)}</script></recipe-table>`;
+```
 - It renders nothing until it has a recipe, renders in the browser only (no server HTML), and
   replaces anything inside the tag.
 - Frameworks: Vue needs `compilerOptions.isCustomElement: (tag) => tag === "recipe-table"`, then

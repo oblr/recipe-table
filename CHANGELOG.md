@@ -7,6 +7,7 @@ Web Component.
 - `<recipe-table>` custom element (`recipe-table/element`): the same markup and CSS as `RecipeTable`, without React. Light DOM, so tokens, part classes, `data-theme` and page CSS apply unchanged. Attributes `scale`, `view`, `locale`, `heading-level`; properties `recipe`, `labels`, `classNames`; a `recipe-error` event instead of `onError`.
 - The recipe can sit in a `<script type="application/json">` inside the tag, so a page needs no script of its own. A `recipe` attribute logs a warning naming both supported ways.
 - `recipe-table/element/define` (`dist/define.js`) registers the element on import; it is the default file on jsDelivr and unpkg, so one `<script type="module" src>` tag is enough.
+- `recipeToInlineJson(recipe)` in `recipe-table/core` serializes a recipe for the inline script so that recipe text cannot end the script and inject HTML. Use it whenever a server embeds data it did not write.
 - `custom-elements.json` describes the element (Custom Elements Manifest), referenced from `package.json`.
 - React is now an optional peer dependency, so element-only installs do not pull it in.
 - `recipe-table/core` gains `prepareRecipe`, `recipeText`, `partClass`, `safeHref` and `DEFAULT_LABELS`, shared by both renderers. `RecipeTableLabels` and `RecipeTablePart` are now exported from core too.

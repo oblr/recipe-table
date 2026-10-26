@@ -146,6 +146,8 @@ document.querySelector("recipe-table").recipe = recipe; // or set it from code
 | Properties only | `recipe`, `labels`, `classNames`. There is no `recipe` attribute. |
 | Event | `recipe-error`, bubbles, `event.detail.errors` |
 
+When a server writes untrusted recipe data into the page, serialize it with `recipeToInlineJson(recipe)` from `recipe-table/core`, not `JSON.stringify`: a `</script>` in any recipe string would otherwise end the script and inject HTML.
+
 It renders in the light DOM, so styling works exactly as above: tokens on any ancestor or on the element, part classes, `data-theme`. Vue needs `isCustomElement` for the tag; Angular needs `CUSTOM_ELEMENTS_SCHEMA`. Full description: [`custom-elements.json`](./custom-elements.json).
 
 ### Core and CLI
