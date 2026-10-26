@@ -56,6 +56,11 @@
     --_rt-accent: var(--rt-color-accent, #e0955a);
   }
 
+  /* The <recipe-table> element (recipe-table/element) is inline by default; the table needs a block. */
+  :where(recipe-table) {
+    display: block;
+  }
+
   /* Header */
   :where(.rt-header) {
     margin-block-end: 1rem;

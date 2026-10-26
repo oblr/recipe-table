@@ -39,6 +39,16 @@
         "default": "./dist/core.cjs"
       }
     },
+    "./element": {
+      "import": {
+        "types": "./dist/element.d.ts",
+        "default": "./dist/element.js"
+      },
+      "require": {
+        "types": "./dist/element.d.cts",
+        "default": "./dist/element.cjs"
+      }
+    },
     "./styles.css": "./styles.css",
     "./schema.json": "./recipe.schema.json",
     "./tokens.json": "./tokens.json",
@@ -90,6 +100,7 @@
     "recipe",
     "cooking",
     "react",
+    "web-component",
     "table",
     "tabular-recipe",
     "cooking-for-engineers"
