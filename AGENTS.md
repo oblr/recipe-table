@@ -94,6 +94,8 @@ document.addEventListener("recipe-error", (e) => console.error(e.detail.errors))
   2. Every ingredient and every step except the last is in exactly one step's `inputs`.
   3. Exactly one step is not an input of any other: the finished dish.
   4. No cycles. Prep steps cannot be inputs.
+  5. At most 1000 ingredients, 1000 steps, 1000 prep steps, and 1000 inputs per step (`MAX_ITEMS`;
+     also `maxItems` in the schema). Larger input is rejected with `invalid_value`.
 - Quantities are numbers (`0.5`, not `"1/2"`); units are canonical codes (`"cup"`, not `"cups"`).
   Unknown units: use `"piece"` and put the description in `name`.
 - Do not invent: `alt` units, temperatures and times only when the source states them.

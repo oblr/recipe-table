@@ -10,7 +10,8 @@ Web Component.
 - `custom-elements.json` describes the element (Custom Elements Manifest), referenced from `package.json`.
 - React is now an optional peer dependency, so element-only installs do not pull it in.
 - `recipe-table/core` gains `prepareRecipe`, `recipeText`, `partClass`, `safeHref` and `DEFAULT_LABELS`, shared by both renderers. `RecipeTableLabels` and `RecipeTablePart` are now exported from core too.
-- Fix: the source link is only rendered for http, https and relative URLs. A `javascript:` URL is shown as text (React 18 did not block it).
+- Fix: the source link is only rendered for http, https and relative URLs, decided by the browser's URL parser, so variants such as `"java\nscript:"` are caught too. Other URLs are shown as text (React 18 did not block them).
+- Fix: a recipe with a long chain of steps (about 2,500) passed validation and then crashed rendering with a stack overflow, taking down the React tree. Layout and cycle detection no longer recurse, and `validateRecipe` rejects more than `MAX_ITEMS` (1000) ingredients, steps, prep steps or inputs per step with `invalid_value`; the schema has matching `maxItems`. `layoutRecipe` on unvalidated data with a cycle or a reused input now throws a clear error instead of hanging.
 - Docs: the first `AGENTS.md` example did not typecheck (JSON imports are not typed as `Recipe`); it now passes `validateRecipe`'s result. Tests now check the `AGENTS.md` code samples, lists and paths, the `llms.txt` links, and the README props table and CDN URLs.
 
 ## 0.1.0 (2026-10-24)

@@ -1,4 +1,4 @@
-import { UNITS, type Recipe } from "./types";
+import { MAX_ITEMS, UNITS, type Recipe } from "./types";
 
 /** Stable error codes. Codes are public API; messages may change. */
 export type ValidationCode =
@@ -148,6 +148,15 @@ export function validateRecipe(input: unknown): ValidationResult {
     else defined.set(id, { kind, path });
   };
 
+  // Size limits first, so oversized input is rejected before any per-item work.
+  const before = errors.length;
+  for (const [key, noun] of [["prep", "prep steps"], ["ingredients", "ingredients"], ["steps", "steps"]] as const) {
+    const list = r[key];
+    if (Array.isArray(list) && list.length > MAX_ITEMS)
+      err(`/${key}`, "invalid_value", `A recipe can have at most ${MAX_ITEMS} ${noun}; this one has ${list.length}.`, "Split it into several recipes.");
+  }
+  if (errors.length > before) return { ok: false, errors };
+
   if ("prep" in r) {
     if (!Array.isArray(r.prep)) err("/prep", "invalid_type", "prep must be an array.");
     else
@@ -211,6 +220,8 @@ export function validateRecipe(input: unknown): ValidationResult {
     optionalDuration(s, "duration", path);
     if ("temperature" in s) checkTemperature(s.temperature, `${path}/temperature`);
     if (!("inputs" in s)) err(`${path}/inputs`, "missing_field", `Missing required field "inputs".`);
+    else if (Array.isArray(s.inputs) && s.inputs.length > MAX_ITEMS)
+      err(`${path}/inputs`, "invalid_value", `A step can have at most ${MAX_ITEMS} inputs; "${String(s.id)}" has ${s.inputs.length}.`);
     else if (!Array.isArray(s.inputs) || s.inputs.some((x) => typeof x !== "string"))
       err(`${path}/inputs`, "invalid_type", "inputs must be an array of id strings.");
     else if (s.inputs.length === 0)
@@ -224,7 +235,7 @@ export function validateRecipe(input: unknown): ValidationResult {
   // Merge-tree rules.
   const recipe = r as unknown as Recipe;
   const consumer = new Map<string, string>(); // input id -> step id that uses it
-  const knownIds = [...recipe.ingredients.map((x) => x.id), ...recipe.steps.map((x) => x.id)];
+  const knownIds = [...recipe.ingredients.map((x) => x.id), ...recipe.steps.map((x) => x.id)].join(", ");
   recipe.steps.forEach((step, i) => {
     step.inputs.forEach((id, j) => {
       const path = `/steps/${i}/inputs/${j}`;
@@ -232,7 +243,7 @@ export function validateRecipe(input: unknown): ValidationResult {
       if (id === step.id) return err(path, "self_input", `Step "${step.id}" lists itself as an input.`);
       if (!def || def.kind === "prep") {
         const why = def ? `"${id}", which is a prep step and cannot be an input` : `"${id}", which does not exist`;
-        return err(path, "unknown_input", `Step "${step.id}" uses ${why}.`, `Known ingredient and step ids: ${knownIds.join(", ")}.`);
+        return err(path, "unknown_input", `Step "${step.id}" uses ${why}.`, `Known ingredient and step ids: ${knownIds}.`);
       }
       const prev = consumer.get(id);
       if (prev !== undefined)
@@ -260,26 +271,42 @@ export function validateRecipe(input: unknown): ValidationResult {
       "Add a final step that combines them, or add each to the inputs of the step that uses its result.",
     );
 
-  // Cycle detection over step -> input edges.
+  // Cycle detection over step -> input edges: depth-first with an explicit stack, so a long chain
+  // of steps cannot overflow the call stack.
   const stepById = new Map(recipe.steps.map((s) => [s.id, s]));
   const state = new Map<string, 1 | 2>(); // 1 = on stack, 2 = done
-  const visit = (id: string, trail: string[]): boolean => {
-    if (state.get(id) === 2) return false;
-    if (state.get(id) === 1) {
-      const loop = [...trail.slice(trail.indexOf(id)), id];
-      const i = recipe.steps.findIndex((s) => s.id === id);
-      err(`/steps/${i}`, "cycle", `Steps form a loop: ${loop.join(" -> ")}.`, "A step may only use earlier results.");
-      return true;
+  const findLoop = (start: string): string[] | undefined => {
+    const stack = [{ id: start, next: 0 }];
+    state.set(start, 1);
+    while (stack.length > 0) {
+      const top = stack[stack.length - 1]!;
+      const inputs = stepById.get(top.id)!.inputs;
+      if (top.next === inputs.length) {
+        state.set(top.id, 2);
+        stack.pop();
+        continue;
+      }
+      const input = inputs[top.next++]!;
+      if (!stepById.has(input) || state.get(input) === 2) continue;
+      if (state.get(input) === 1) {
+        const trail = stack.map((f) => f.id);
+        return [...trail.slice(trail.indexOf(input)), input];
+      }
+      state.set(input, 1);
+      stack.push({ id: input, next: 0 });
     }
-    state.set(id, 1);
-    for (const input of stepById.get(id)?.inputs ?? []) {
-      if (stepById.has(input) && visit(input, [...trail, id])) return true;
-    }
-    state.set(id, 2);
-    return false;
+    return undefined;
   };
   let hasCycle = false;
-  for (const s of recipe.steps) if (!hasCycle) hasCycle = visit(s.id, []);
+  for (const s of recipe.steps) {
+    if (hasCycle || state.get(s.id) === 2) continue;
+    const loop = findLoop(s.id);
+    if (loop) {
+      hasCycle = true;
+      const i = recipe.steps.findIndex((x) => x.id === loop[0]);
+      err(`/steps/${i}`, "cycle", `Steps form a loop: ${loop.join(" -> ")}.`, "A step may only use earlier results.");
+    }
+  }
   if (roots.length === 0 && !hasCycle && recipe.steps.length > 0)
     err("/steps", "no_root", "Every step is used by another step, so there is no final step.");
 

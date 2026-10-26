@@ -3,6 +3,12 @@
  * (a test checks every example against the schema and these rules).
  */
 
+/**
+ * Most ingredients, steps or prep steps in a recipe, and most inputs of one step. Real recipes stay
+ * far below; the limit keeps untrusted input from freezing or crashing the page.
+ */
+export const MAX_ITEMS = 1000;
+
 /** Canonical unit codes. Anything else goes into the ingredient `name` or `note` with unit `"piece"`. */
 export const UNITS = [
   "g",

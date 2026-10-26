@@ -61,26 +61,56 @@ export function layoutRecipe(recipe: Recipe): Grid {
 
   const ingredients: IngredientCell[] = [];
   const steps: StepCell[] = [];
-  const colOf = new Map<string, number>();
+  const cellById = new Map<string, GridCell>();
+  const placed = new Set<string>();
 
-  const place = (id: string): { start: number; end: number; col: number } => {
+  interface Span {
+    start: number;
+    end: number;
+    col: number;
+  }
+  // Depth-first from the final step with an explicit stack (a long chain of steps must not overflow
+  // the call stack). Ingredients get rows in the order they are reached; a step is placed after all
+  // of its inputs, one column right of the deepest.
+  const stack: { step: Step; parts: Span[] }[] = [];
+  const enter = (id: string): Span | undefined => {
+    // Unvalidated data could loop forever or place a shared input once per path; refuse instead.
+    if (placed.has(id)) throw new Error(`recipe-table: "${id}" is reached twice; run validateRecipe() first.`);
+    placed.add(id);
     const ingredient = ingredientById.get(id);
     if (ingredient) {
       const row = ingredients.length;
-      ingredients.push({ kind: "ingredient", id, row, col: 0, rowSpan: 1, colSpan: 1, ingredient });
-      colOf.set(id, 0);
+      const cell: IngredientCell = { kind: "ingredient", id, row, col: 0, rowSpan: 1, colSpan: 1, ingredient };
+      ingredients.push(cell);
+      cellById.set(id, cell);
       return { start: row, end: row + 1, col: 0 };
     }
     const step = stepById.get(id);
     if (!step) throw new Error(`recipe-table: unknown id "${id}"; run validateRecipe() first.`);
-    const parts = step.inputs.map(place);
-    const start = Math.min(...parts.map((p) => p.start));
-    const end = Math.max(...parts.map((p) => p.end));
-    const col = 1 + Math.max(...parts.map((p) => p.col));
-    colOf.set(id, col);
-    steps.push({
+    stack.push({ step, parts: [] });
+    return undefined;
+  };
+  enter(root.id);
+  while (stack.length > 0) {
+    const frame = stack[stack.length - 1]!;
+    const { step, parts } = frame;
+    if (parts.length < step.inputs.length) {
+      const span = enter(step.inputs[parts.length]!);
+      if (span) parts.push(span);
+      continue;
+    }
+    stack.pop();
+    let start = Infinity;
+    let end = -Infinity;
+    let col = 0;
+    for (const p of parts) {
+      start = Math.min(start, p.start);
+      end = Math.max(end, p.end);
+      col = Math.max(col, p.col + 1);
+    }
+    const cell: StepCell = {
       kind: "step",
-      id,
+      id: step.id,
       row: start,
       col,
       rowSpan: end - start,
@@ -89,16 +119,17 @@ export function layoutRecipe(recipe: Recipe): Grid {
       isRoot: step === root,
       ingredientIds: ingredients.slice(start, end).map((c) => c.id),
       step,
-    });
-    return { start, end, col };
-  };
-  place(root.id);
+    };
+    steps.push(cell);
+    cellById.set(step.id, cell);
+    stack[stack.length - 1]?.parts.push({ start, end, col });
+  }
 
   // Each input stretches to the column of the step that uses it.
   for (const cell of steps) {
     for (const input of cell.step.inputs) {
-      const target = ingredients.find((c) => c.id === input) ?? steps.find((c) => c.id === input);
-      if (target) target.colSpan = cell.col - (colOf.get(input) ?? 0);
+      const target = cellById.get(input);
+      if (target) target.colSpan = cell.col - target.col;
     }
   }
 
@@ -106,5 +137,5 @@ export function layoutRecipe(recipe: Recipe): Grid {
   for (const cell of [...ingredients, ...steps]) rows[cell.row]!.push(cell);
   for (const row of rows) row.sort((a, b) => a.col - b.col);
 
-  return { columns: 1 + (colOf.get(root.id) ?? 0), rows, steps, ingredients, prep: recipe.prep ?? [] };
+  return { columns: 1 + (cellById.get(root.id)?.col ?? 0), rows, steps, ingredients, prep: recipe.prep ?? [] };
 }
