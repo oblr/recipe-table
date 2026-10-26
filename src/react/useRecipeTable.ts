@@ -1,17 +1,13 @@
 import { useMemo } from "react";
-import { scaleRecipe } from "../core/format";
-import { layoutRecipe, type Grid } from "../core/layout";
+import { prepareRecipe, type PreparedRecipe } from "../core/view";
 import type { Recipe } from "../core/types";
-import { validateRecipe, type ValidationError } from "../core/validate";
 
 export interface UseRecipeTableOptions {
   /** Multiply quantities and yield. Default 1. */
   scale?: number;
 }
 
-export type UseRecipeTableResult =
-  | { ok: true; recipe: Recipe; grid: Grid; errors: [] }
-  | { ok: false; errors: ValidationError[] };
+export type UseRecipeTableResult = PreparedRecipe;
 
 /**
  * Headless version of `<RecipeTable>`: validates, scales and lays out the recipe, and leaves the
@@ -24,10 +20,5 @@ export type UseRecipeTableResult =
  */
 export function useRecipeTable(recipe: Recipe | unknown, options: UseRecipeTableOptions = {}): UseRecipeTableResult {
   const scale = options.scale ?? 1;
-  return useMemo(() => {
-    const result = validateRecipe(recipe);
-    if (!result.ok) return result;
-    const scaled = scaleRecipe(result.recipe, scale);
-    return { ok: true, recipe: scaled, grid: layoutRecipe(scaled), errors: [] };
-  }, [recipe, scale]);
+  return useMemo(() => prepareRecipe(recipe, scale), [recipe, scale]);
 }

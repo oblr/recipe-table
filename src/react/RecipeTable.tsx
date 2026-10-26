@@ -1,64 +1,8 @@
 import { useEffect, useId, useRef, type CSSProperties, type ReactNode } from "react";
-import { formatDuration, formatQuantity, formatTemperature, type FormatOptions, type UnitLabels } from "../core/format";
-import type { StepCell } from "../core/layout";
-import type { Recipe } from "../core/types";
 import type { ValidationError } from "../core/validate";
+import { DEFAULT_LABELS, partClass, recipeText, safeHref, type RecipeTableLabels, type RecipeTablePart } from "../core/view";
+import type { Recipe } from "../core/types";
 import { useRecipeTable } from "./useRecipeTable";
-
-/** Every styleable element. Each renders with the class `rt-<part>` (camelCase becomes kebab-case). */
-export type RecipeTablePart =
-  | "root"
-  | "header"
-  | "title"
-  | "meta"
-  | "description"
-  | "prep"
-  | "scroll"
-  | "table"
-  | "row"
-  | "ingredient"
-  | "quantity"
-  | "name"
-  | "note"
-  | "step"
-  | "action"
-  | "stepMeta"
-  | "list"
-  | "source"
-  | "error";
-
-/** UI strings. Recipe text itself is never translated. */
-export interface RecipeTableLabels {
-  /** Heading of the step list (narrow screens and screen readers). Default "Steps". */
-  steps: string;
-  /** Accessible name of the prep list. Default "Before you start". */
-  prep: string;
-  /** Default "Source". */
-  source: string;
-  /** Default "by". */
-  by: string;
-  /** Default "optional". */
-  optional: string;
-  /** Default "Total time". */
-  totalTime: string;
-  /** How the step list refers to an earlier step's result. Default (n) => `result of step ${n}`. */
-  stepResult: (stepNumber: number) => string;
-  /** Default "This recipe cannot be shown". */
-  errorTitle: string;
-  /** Unit display names, e.g. { cup: ["Tasse", "Tassen"] }. */
-  units?: UnitLabels;
-}
-
-const DEFAULT_LABELS: RecipeTableLabels = {
-  steps: "Steps",
-  prep: "Before you start",
-  source: "Source",
-  by: "by",
-  optional: "optional",
-  totalTime: "Total time",
-  stepResult: (n) => `result of step ${n}`,
-  errorTitle: "This recipe cannot be shown",
-};
 
 export interface RecipeTableProps {
   /** The recipe to render. Validated on every change; invalid data renders an error block, never a wrong table. */
@@ -87,8 +31,6 @@ export interface RecipeTableProps {
   onError?: (errors: ValidationError[]) => void;
 }
 
-const kebab = (s: string) => s.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
-
 /**
  * Render a recipe as a tabular recipe: ingredients are rows, steps are columns, and each step
  * spans the ingredients it combines.
@@ -105,8 +47,7 @@ export function RecipeTable(props: RecipeTableProps): ReactNode {
   const table = useRecipeTable(recipe, { scale });
   const uid = useId();
 
-  const cls = (part: RecipeTablePart, ...extra: (string | false | undefined)[]) =>
-    [`rt-${kebab(part)}`, ...extra, classNames?.[part]].filter(Boolean).join(" ");
+  const cls = (part: RecipeTablePart, ...extra: (string | false | undefined)[]) => partClass(part, classNames, ...extra);
 
   // Report each new set of errors once, even if the caller passes a fresh onError every render.
   const onErrorRef = useRef(onError);
@@ -133,27 +74,11 @@ export function RecipeTable(props: RecipeTableProps): ReactNode {
   }
 
   const { grid, recipe: r } = table;
-  const fmt: FormatOptions = { locale, unitLabels: labels.units };
+  const text = recipeText(r, grid, labels, { locale, unitLabels: labels.units });
   const Heading = `h${headingLevel}` as "h2";
   const titleId = `${uid}-title`;
   const rowId = (id: string) => `${uid}-ing-${id}`;
-  const stepNumber = new Map(grid.steps.map((s, i) => [s.id, i + 1]));
-
-  const meta: string[] = [];
-  if (r.yield) meta.push(`${formatQuantity({ value: r.yield.amount }, fmt)} ${r.yield.unit}`);
-  if (r.time?.total) meta.push(`${labels.totalTime} ${formatDuration(r.time.total)}`);
-
-  const stepDetails = (s: StepCell["step"] | NonNullable<Recipe["prep"]>[number]) =>
-    [("duration" in s && s.duration && formatDuration(s.duration)) || "", s.temperature ? formatTemperature(s.temperature) : ""]
-      .filter(Boolean)
-      .join(" · ");
-
-  const ingredientById = new Map(r.ingredients.map((i) => [i.id, i]));
-  const inputText = (id: string) => {
-    const ing = ingredientById.get(id);
-    if (!ing) return labels.stepResult(stepNumber.get(id) ?? 0);
-    return `${ing.quantity ? `${formatQuantity(ing.quantity, fmt)} ` : ""}${ing.name}`;
-  };
+  const href = safeHref(r.source?.url);
 
   return (
     <section className={cls("root", className)} style={style} data-view={view} aria-labelledby={titleId}>
@@ -161,14 +86,14 @@ export function RecipeTable(props: RecipeTableProps): ReactNode {
         <Heading className={cls("title")} id={titleId}>
           {r.title}
         </Heading>
-        {meta.length > 0 && <p className={cls("meta")}>{meta.join(" · ")}</p>}
+        {text.meta && <p className={cls("meta")}>{text.meta}</p>}
         {r.description && <p className={cls("description")}>{r.description}</p>}
       </header>
 
       {grid.prep.length > 0 && (
         <ul className={cls("prep")} aria-label={labels.prep}>
           {grid.prep.map((p) => {
-            const details = stepDetails(p);
+            const details = text.stepDetails(p);
             return (
               <li key={p.id}>
                 <span className={cls("action")}>{p.action}</span>
@@ -197,14 +122,14 @@ export function RecipeTable(props: RecipeTableProps): ReactNode {
                         className={cls("ingredient")}
                         data-optional={ing.optional || undefined}
                       >
-                        {ing.quantity && <span className={cls("quantity")}>{formatQuantity(ing.quantity, fmt)}</span>}{" "}
+                        {ing.quantity && <span className={cls("quantity")}>{text.quantity(ing.quantity)}</span>}{" "}
                         <span className={cls("name")}>{ing.name}</span>
                         {ing.note && <>, <span className={cls("note")}>{ing.note}</span></>}
                         {ing.optional && <> <span className={cls("note")}>({labels.optional})</span></>}
                       </th>
                     );
                   }
-                  const details = stepDetails(cell.step);
+                  const details = text.stepDetails(cell.step);
                   return (
                     <td
                       key={cell.id}
@@ -229,13 +154,13 @@ export function RecipeTable(props: RecipeTableProps): ReactNode {
 
       <ol className={cls("list")} aria-label={labels.steps}>
         {grid.steps.map((s) => {
-          const details = stepDetails(s.step);
+          const details = text.stepDetails(s.step);
           return (
             <li key={s.id}>
               <span className={cls("action")}>{s.step.action}</span>
               {details && <> <span className={cls("stepMeta")}>{details}</span></>}
               {": "}
-              {s.step.inputs.map(inputText).join(", ")}
+              {text.stepInputs(s.step)}
               {s.step.note && <> <span className={cls("note")}>{s.step.note}</span></>}
             </li>
           );
@@ -245,12 +170,12 @@ export function RecipeTable(props: RecipeTableProps): ReactNode {
       {r.source && (r.source.name || r.source.url || r.source.author) && (
         <p className={cls("source")}>
           {labels.source}:{" "}
-          {r.source.url ? (
-            <a href={r.source.url} rel="noopener noreferrer">
+          {href ? (
+            <a href={href} rel="noopener noreferrer">
               {r.source.name ?? r.source.url}
             </a>
           ) : (
-            r.source.name
+            (r.source.name ?? r.source.url)
           )}
           {r.source.author && ` ${labels.by} ${r.source.author}`}
         </p>

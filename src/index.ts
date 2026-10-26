@@ -7,5 +7,5 @@
  * <RecipeTable recipe={recipe} />
  */
 export * from "./core";
-export { RecipeTable, type RecipeTableProps, type RecipeTableLabels, type RecipeTablePart } from "./react/RecipeTable";
+export { RecipeTable, type RecipeTableProps } from "./react/RecipeTable";
 export { useRecipeTable, type UseRecipeTableOptions, type UseRecipeTableResult } from "./react/useRecipeTable";

@@ -7,3 +7,4 @@ export * from "./core/validate";
 export * from "./core/layout";
 export * from "./core/format";
 export * from "./core/text";
+export * from "./core/view";
